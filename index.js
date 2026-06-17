@@ -5,7 +5,7 @@ const app = express();
 
 app.get("/", async (req, res) => {
   try {
-    const rss = await fetch("https://hojyokin-portal.jp/feed", {
+    const response = await fetch("https://hojyokin-portal.jp/feed", {
       headers: {
         "User-Agent": "Mozilla/5.0",
         "Accept": "application/rss+xml, application/xml, text/xml;q=0.9,*/*;q=0.8",
@@ -13,9 +13,14 @@ app.get("/", async (req, res) => {
       }
     });
 
-    const text = await rss.text();
+    const text = await response.text();
 
-    // XML の構文エラーを避けるため、text/plain として返す
+    // RSSが壊れていても安全に表示できるようにする
+    if (!text.trim().startsWith("<")) {
+      res.status(404).send("Feed not found or invalid XML source");
+      return;
+    }
+
     res.set("Content-Type", "text/plain; charset=utf-8");
     res.send(text);
   } catch (error) {
