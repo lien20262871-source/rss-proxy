@@ -10,10 +10,11 @@ app.get("/", async (req, res) => {
   try {
     const targetUrl = "https://hojyokin-portal.jp/news";
 
-    const apiUrl = `https://api.scrapingant.com/v2/general?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
+    const apiUrl = `https://api.scrapingant.com/v2/browser?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
 
     const response = await fetch(apiUrl);
-    const html = await response.text();
+    const data = await response.json();
+    const html = data.content;
 
     const $ = cheerio.load(html);
     const items = [];
