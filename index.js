@@ -4,13 +4,13 @@ import * as cheerio from "cheerio";
 
 const app = express();
 
-const API_KEY = process.env.SCRAPERAPI_KEY;
+const API_KEY = process.env.SCRAPINGANT_KEY;
 
 app.get("/", async (req, res) => {
   try {
     const targetUrl = "https://hojyokin-portal.jp/news";
 
-    const apiUrl = `http://api.scraperapi.com?api_key=${API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true`;
+    const apiUrl = `https://api.scrapingant.com/v2/general?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
 
     const response = await fetch(apiUrl);
     const html = await response.text();
