@@ -1,31 +1,56 @@
 import express from "express";
 import fetch from "node-fetch";
+import * as cheerio from "cheerio";
 
 const app = express();
 
 app.get("/", async (req, res) => {
   try {
-    const response = await fetch("https://hojyokin-portal.jp/feed", {
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9,*/*;q=0.8",
-        "Referer": "https://hojyokin-portal.jp/"
-      }
+    const response = await fetch("https://hojyokin-portal.jp/news");
+    const html = await response.text();
+
+    const $ = cheerio.load(html);
+
+    const items = [];
+
+    $(".news-list .news-item").each((i, el) => {
+      const title = $(el).find(".news-title").text().trim();
+      const link = "https://hojyokin-portal.jp" + $(el).find("a").attr("href");
+      const date = $(el).find(".news-date").text().trim();
+
+      items.push({ title, link, date });
     });
 
-    const text = await response.text();
+    // RSS XML を生成
+    let rss = `<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+<title>補助金ポータル 新着情報</title>
+<link>https://hojyokin-portal.jp/news</link>
+<description>補助金ポータルの新着情報を自動生成したRSSです</description>
+`;
 
-    // RSSが壊れていても安全に表示できるようにする
-    if (!text.trim().startsWith("<")) {
-      res.status(404).send("Feed not found or invalid XML source");
-      return;
-    }
+    items.forEach(item => {
+      rss += `
+<item>
+<title>${item.title}</title>
+<link>${item.link}</link>
+<pubDate>${item.date}</pubDate>
+</item>
+`;
+    });
 
-    res.set("Content-Type", "text/plain; charset=utf-8");
-    res.send(text);
+    rss += `
+</channel>
+</rss>
+`;
+
+    res.set("Content-Type", "application/xml; charset=utf-8");
+    res.send(rss);
+
   } catch (error) {
-    console.error("Error fetching RSS:", error);
-    res.status(500).send("Failed to fetch RSS feed");
+    console.error("Error:", error);
+    res.status(500).send("Failed to generate RSS");
   }
 });
 
