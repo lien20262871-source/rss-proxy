@@ -14,7 +14,13 @@ app.get("/", async (req, res) => {
 
     const response = await fetch(apiUrl);
     const data = await response.json();
-    const html = data.content;
+
+    // Browser API のレスポンスは { content: "<html>..." } の形
+    const html = data?.content || "";
+
+    if (!html) {
+      console.error("ScrapingAnt returned empty HTML");
+    }
 
     const $ = cheerio.load(html);
     const items = [];
