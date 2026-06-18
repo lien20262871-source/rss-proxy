@@ -1,28 +1,23 @@
 import express from "express";
-import puppeteer from "puppeteer";
+import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 
 const app = express();
 
+// ScrapingBee APIキー（無料登録で取得）
+const API_KEY = process.env.SCRAPINGBEE_KEY;
+
 app.get("/", async (req, res) => {
-  let browser = null;
-
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: "/usr/bin/chromium",   // ← 修正ポイント
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
+    const targetUrl = "https://hojyokin-portal.jp/news";
 
-    const page = await browser.newPage();
+    // ScrapingBee で JS 実行後の HTML を取得
+    const apiUrl = `https://app.scrapingbee.com/api/v1/?api_key=${API_KEY}&url=${encodeURIComponent(targetUrl)}&render_js=true`;
 
-    await page.goto("https://hojyokin-portal.jp/news", {
-      waitUntil: "networkidle2"
-    });
+    const response = await fetch(apiUrl);
+    const html = await response.text();
 
-    const html = await page.content();
     const $ = cheerio.load(html);
-
     const items = [];
 
     $("li.p-news__item").each((i, el) => {
@@ -60,12 +55,8 @@ app.get("/", async (req, res) => {
     res.send(rss);
 
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Failed to generate RSS");
-  } finally {
-    if (browser !== null) {
-      await browser.close();
-    }
+    console.error(error);
+    res.status(500).send("RSS生成に失敗しました");
   }
 });
 
