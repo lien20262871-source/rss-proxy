@@ -10,7 +10,7 @@ app.get("/", async (req, res) => {
   try {
     const targetUrl = "https://www.metro.tokyo.lg.jp/tosei/hodohappyo/index.html";
 
-    const apiUrl = `https://api.scrapingant.com/v2/general?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
+    const apiUrl = `https://api.scrapingant.com/v2/browser?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
 
     const response = await fetch(apiUrl);
     const html = await response.text();
