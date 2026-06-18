@@ -13,10 +13,10 @@ app.get("/", async (req, res) => {
 
     const items = [];
 
-    $(".news-list .news-item").each((i, el) => {
-      const title = $(el).find(".news-title").text().trim();
+    $("li.p-news__item").each((i, el) => {
       const link = "https://hojyokin-portal.jp" + $(el).find("a").attr("href");
-      const date = $(el).find(".news-date").text().trim();
+      const title = $(el).find(".p-news__title").text().trim();
+      const date = $(el).find(".p-news__date").text().trim();
 
       items.push({ title, link, date });
     });
