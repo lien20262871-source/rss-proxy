@@ -1,13 +1,30 @@
 import express from "express";
-import fetch from "node-fetch";
+import chromium from "chrome-aws-lambda";
 import * as cheerio from "cheerio";
 
 const app = express();
 
 app.get("/", async (req, res) => {
+  let browser = null;
+
   try {
-    const response = await fetch("https://hojyokin-portal.jp/news");
-    const html = await response.text();
+    // Puppeteer 起動（Render 対応）
+    browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless
+    });
+
+    const page = await browser.newPage();
+
+    // 新着情報ページを開く
+    await page.goto("https://hojyokin-portal.jp/news", {
+      waitUntil: "networkidle2"
+    });
+
+    // JS 実行後の HTML を取得
+    const html = await page.content();
 
     const $ = cheerio.load(html);
 
@@ -46,13 +63,4 @@ app.get("/", async (req, res) => {
 </rss>
 `;
 
-    res.set("Content-Type", "application/xml; charset=utf-8");
-    res.send(rss);
-
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Failed to generate RSS");
-  }
-});
-
-app.listen(10000, () => console.log("RSS proxy running"));
+    res.set("Content-Type
