@@ -8,27 +8,23 @@ app.get("/", async (req, res) => {
   let browser = null;
 
   try {
-    // Render 上の Chromium を起動
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/chromium-browser",
+      executablePath: "/usr/bin/chromium",   // ← 修正ポイント
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
 
-    // 新着情報ページを開く
     await page.goto("https://hojyokin-portal.jp/news", {
       waitUntil: "networkidle2"
     });
 
-    // JS 実行後の HTML を取得
     const html = await page.content();
     const $ = cheerio.load(html);
 
     const items = [];
 
-    // 補助金ポータルの正しい記事構造
     $("li.p-news__item").each((i, el) => {
       const link = "https://hojyokin-portal.jp" + $(el).find("a").attr("href");
       const title = $(el).find(".p-news__title").text().trim();
@@ -37,7 +33,6 @@ app.get("/", async (req, res) => {
       items.push({ title, link, date });
     });
 
-    // RSS XML を生成
     let rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
