@@ -13,6 +13,7 @@ app.get("/", async (req, res) => {
 
     const items = [];
 
+    // 補助金ポータルの正しい記事構造
     $("li.p-news__item").each((i, el) => {
       const link = "https://hojyokin-portal.jp" + $(el).find("a").attr("href");
       const title = $(el).find(".p-news__title").text().trim();
