@@ -1,5 +1,5 @@
 import express from "express";
-import chromium from "chrome-aws-lambda";
+import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
 
 const app = express();
@@ -8,12 +8,11 @@ app.get("/", async (req, res) => {
   let browser = null;
 
   try {
-    // Puppeteer 起動（Render 対応）
-    browser = await chromium.puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless
+    // Render 上の Chromium を起動
+    browser = await puppeteer.launch({
+      headless: true,
+      executablePath: "/usr/bin/chromium",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
@@ -25,7 +24,6 @@ app.get("/", async (req, res) => {
 
     // JS 実行後の HTML を取得
     const html = await page.content();
-
     const $ = cheerio.load(html);
 
     const items = [];
@@ -63,4 +61,17 @@ app.get("/", async (req, res) => {
 </rss>
 `;
 
-    res.set("Content-Type
+    res.set("Content-Type", "application/xml; charset=utf-8");
+    res.send(rss);
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Failed to generate RSS");
+  } finally {
+    if (browser !== null) {
+      await browser.close();
+    }
+  }
+});
+
+app.listen(10000, () => console.log("RSS proxy running"));
