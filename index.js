@@ -11,7 +11,7 @@ app.get("/", async (req, res) => {
     // Render 上の Chromium を起動
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/chromium",
+      executablePath: "/usr/bin/chromium-browser",
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
