@@ -4,13 +4,13 @@ import * as cheerio from "cheerio";
 
 const app = express();
 
-const API_KEY = process.env.ZENROWS_KEY;
+const API_KEY = process.env.SCRAPERAPI_KEY;
 
 app.get("/", async (req, res) => {
   try {
     const targetUrl = "https://hojyokin-portal.jp/news";
 
-    const apiUrl = `https://api.zenrows.com/v1/?apikey=${API_KEY}&url=${encodeURIComponent(targetUrl)}&js_render=true`;
+    const apiUrl = `http://api.scraperapi.com?api_key=${API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true`;
 
     const response = await fetch(apiUrl);
     const html = await response.text();
