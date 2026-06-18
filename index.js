@@ -8,27 +8,20 @@ const API_KEY = process.env.SCRAPINGANT_KEY;
 
 app.get("/", async (req, res) => {
   try {
-    const targetUrl = "https://hojyokin-portal.jp/news";
+    const targetUrl = "https://www.metro.tokyo.lg.jp/tosei/hodohappyo/index.html";
 
-    const apiUrl = `https://api.scrapingant.com/v2/browser?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
+    const apiUrl = `https://api.scrapingant.com/v2/general?url=${encodeURIComponent(targetUrl)}&x-api-key=${API_KEY}`;
 
     const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    // Browser API のレスポンスは { content: "<html>..." } の形
-    const html = data?.content || "";
-
-    if (!html) {
-      console.error("ScrapingAnt returned empty HTML");
-    }
+    const html = await response.text();
 
     const $ = cheerio.load(html);
     const items = [];
 
-    $("li.p-news__item").each((i, el) => {
-      const link = "https://hojyokin-portal.jp" + $(el).find("a").attr("href");
-      const title = $(el).find(".p-news__title").text().trim();
-      const date = $(el).find(".p-news__date").text().trim();
+    $("ul.list-link li").each((i, el) => {
+      const link = "https://www.metro.tokyo.lg.jp" + $(el).find("a").attr("href");
+      const date = $(el).find(".date").text().trim();
+      const title = $(el).find(".title").text().trim();
 
       items.push({ title, link, date });
     });
@@ -36,9 +29,9 @@ app.get("/", async (req, res) => {
     let rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-<title>補助金ポータル 新着情報</title>
-<link>https://hojyokin-portal.jp/news</link>
-<description>補助金ポータルの新着情報を自動生成したRSSです</description>
+<title>東京都庁 都政ニュース</title>
+<link>https://www.metro.tokyo.lg.jp/tosei/hodohappyo/index.html</link>
+<description>東京都庁の都政ニュースを自動生成したRSSです</description>
 `;
 
     items.forEach(item => {
